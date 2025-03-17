@@ -2,7 +2,7 @@ import Player from './modules/Player.js';
 import { tileTypes } from './constants/tileTypes.js';
 import * as roomGenerator from './rooms/roomGenerator.js';
 import { randBetween, randFloat } from './utils/random.js';
-import Tile from '../modules/Tile.js'
+import Tile from './modules/Tile.js'
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -55,13 +55,20 @@ function movePlayer(dx, dy) {
     const tile = roomMap[tileY]?.[tileX];
 
     switch(tile.type){
-        case tileTypes.WALL:
-            break;
         case tileTypes.DOOR:
             handleEnterDoor(tileX, tileY);
             break;
         case tileTypes.BOMB:
             explodeBomb(tileX, tileY);
+            break;
+        case tileTypes.SPIKES:
+            playerHit();
+            break;
+        case tileTypes.WALL:
+            break;
+        case tileTypes.HOLE:
+            break;
+        case tileTypes.ROCK:
             break;
         default:
             player.x = newX; 
@@ -119,6 +126,26 @@ function handleEnterDoor(tileX, tileY) {
 function explodeBomb(tileX, tileY) {
     console.log("boom");
     roomMap[tileY][tileX] = new Tile(tileTypes.EMPTY, tileX, tileY);
+
+    const room = dungeon[`${currentRoom.x},${currentRoom.y}`];
+    if (!room.enemies || room.enemies.length === 0) return;
+
+    let enemyList = [];
+    let radius = 5;
+
+    room.enemies.forEach(enemy => {
+        const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y);
+        console.log(dist);
+        if (dist < radius) {
+            enemyList.push(enemy);
+            
+        }
+    });
+
+    if (enemyList) { // range to go boom
+        room.enemies = room.enemies.filter(e => !enemyList.includes(e));
+    }
+
 }
 
 function update() {
