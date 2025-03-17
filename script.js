@@ -110,14 +110,14 @@ function handleEnterDoor(tileX, tileY) {
             break;
         case "bottom":
             player.x = ROOM_WIDTH / 2;
-            player.y = ROOM_HEIGHT-1;
+            player.y = ROOM_HEIGHT - 1;
             break;
         case "left":
             player.x = 1;
             player.y = ROOM_HEIGHT / 2;
             break;
         case "right":
-            player.x = ROOM_WIDTH-1;
+            player.x = ROOM_WIDTH - 1;
             player.y = ROOM_HEIGHT / 2;
             break;
     }

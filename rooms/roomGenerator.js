@@ -14,13 +14,23 @@ export function generateRoom(entryDoor, height, width) {
     room = addDoorsToRoom(room, entryDoor);
 
     // additional room floor modifiers
-    room = addHoleToRoom(room);
+    room = addRandomItems(room, addHoleToRoom, .5, 1, 5);
 
     // additional room on floor modifier
-    room = addSpikesToRoom(room);
-    room = addBombToRoom(room);
-    room = addRockToRoom(room);
+    room = addRandomItems(room, addSpikesToRoom, .5, 1, 5);
+    room = addRandomItems(room, addBombToRoom, .5, 1, 5);
+    room = addRandomItems(room, addRockToRoom, .5, 1, 5);
     
+    return room;
+}
+
+function addRandomItems(room, addFunction, chance, minCount, maxCount) {
+    if (Math.random() < chance) {
+        const count = randBetween(minCount, maxCount);
+        for (let i = 0; i < count; ++i) {
+            room = addFunction(room);
+        }
+    }
     return room;
 }
 
