@@ -1,35 +1,8 @@
-class Tile {
-    constructor(type, x, y, prop = {}) {
-        this.type = type; // e.g., WALL, DOOR, etc.
-        this.x = x;
-        this.y = y;
-        this.prop = prop; // additional properties (walkable, damage, etc.)
-    }
-}
-
-class Player {
-    constructor(x, y, size, speed, health, name, playerCoolDown, shotDistance) {
-        this.x = x;
-        this.y = y;
-        this.size = size;
-        this.speed = speed;
-        this.currentHealth = health;
-        this.maxHealth = health;
-        this.name = name;
-        this.playerCoolDown = playerCoolDown;
-        this.shotDistance = shotDistance;
-    }
-}
-
-const tileTypes = {
-    EMPTY: { id: 0, name: "EMPTY", walkable: true },
-    WALL: { id: 1, name: "WALL", walkable: false },
-    DOOR: { id: 2, name: "DOOR", walkable: true },
-    HOLE: { id: 3, name: "HOLE", walkable: false },
-    SPIKES: { id: 4, name: "SPIKES", walkable: true, damage: 1 },
-    BOMB: { id: 5, name: "BOMB", walkable: false, damage: 2 },
-    ROCK: { id: 6, name: "ROCK", walkable: false },
-};
+import Player from './modules/Player.js';
+import { tileTypes } from './constants/tileTypes.js';
+import * as roomGenerator from './rooms/roomGenerator.js';
+import { randBetween, randFloat } from './utils/random.js';
+import Tile from '../modules/Tile.js'
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -38,110 +11,19 @@ const TILE_SIZE = 40;
 const ROOM_WIDTH = canvas.width / TILE_SIZE;
 const ROOM_HEIGHT = canvas.height / TILE_SIZE;
 
-const player = new Player(x = ROOM_WIDTH / 2, y = ROOM_HEIGHT / 2, 
-                          size = 0.6, speed = 0.1, currentHealth = 5, name = "default", 
-                          playerCoolDown = 60, shotDistance = 5);
+const player = new Player(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0.6, 0.1, 5, "default", 60, 5);
 
+// Event Listeners
 let keys = {};
 document.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
 document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
+// Game State Variables
 const dungeon = {};
 const visitedRooms = new Set();
 let playerHitCooldown = player.playerCoolDown;
 let currentRoom = { x: 10, y: 10 };
 visitedRooms.add(`${currentRoom.x},${currentRoom.y}`);
-
-function generateRoom(entryDoor) {
-    let room = [];
-    // basic room generation
-    room = createEmptyRoom(room);
-    room = createWalls(room);
-    room = addDoorsToRoom(room, entryDoor);
-
-    // additional room floor modifiers
-    room = addHoleToRoom(room);
-
-    // additional room on floor modifier
-    room = addSpikesToRoom(room);
-    room = addBombToRoom(room);
-    room = addRockToRoom(room);
-    
-    return room;
-}
-
-function createEmptyRoom(room) {
-    for (let y = 0; y < ROOM_HEIGHT; ++y) {
-        room[y] = [];
-        for (let x = 0; x < ROOM_WIDTH; ++x) {
-            room[y][x] = new Tile(tileTypes.EMPTY, x, y);
-        }
-    }
-    return room;
-}
-
-function createWalls(room) {
-    for (let i = 0; i < ROOM_WIDTH; i++) {
-        room[0][i] = new Tile(tileTypes.WALL, i, 0);
-        room[ROOM_HEIGHT - 1][i] = new Tile(tileTypes.WALL, i, ROOM_HEIGHT - 1);
-    }
-    for (let i = 0; i < ROOM_HEIGHT; i++) {
-        room[i][0] = new Tile(tileTypes.WALL, 0, i);
-        room[i][ROOM_WIDTH - 1] = new Tile(tileTypes.WALL, ROOM_WIDTH - 1, i);
-    }
-    return room;
-}
-
-function addDoorsToRoom(room, entryDoor) {
-    const doors = {
-        top: { x: randBetween(1, ROOM_WIDTH - 2), y: 0 },
-        bottom: { x: randBetween(1, ROOM_WIDTH - 2), y: ROOM_HEIGHT - 1 },
-        left: { x: 0, y: randBetween(1, ROOM_HEIGHT - 2) },
-        right: { x: ROOM_WIDTH - 1, y: randBetween(1, ROOM_HEIGHT - 2) }
-    };
-
-    if (entryDoor && doors[entryDoor]) {
-        let pos = doors[entryDoor];
-        room[pos.y][pos.x] = new Tile(tileTypes.DOOR, pos.x, pos.y);
-    }
-
-    // Add additional doors randomly for the other sides.
-    Object.entries(doors).forEach(([side, pos]) => {
-        if (side === entryDoor) return; // already forced
-        if (Math.random() < 0.5) {
-            room[pos.y][pos.x] = new Tile(tileTypes.DOOR, pos.x, pos.y);
-        }
-    });
-    return room;
-}
-
-function addHoleToRoom(room) {
-    const x = randBetween(1, ROOM_WIDTH - 4);
-    const y = randBetween(1, ROOM_HEIGHT - 4);
-    room[y][x] = new Tile(tileTypes.HOLE, x, y);
-    return room;
-}
-
-function addSpikesToRoom(room) {
-    const x = randBetween(1, ROOM_WIDTH - 4);
-    const y = randBetween(1, ROOM_HEIGHT - 4);
-    room[y][x] = new Tile(tileTypes.SPIKES, x, y);
-    return room;
-}
-
-function addBombToRoom(room) {
-    const x = randBetween(1, ROOM_WIDTH - 4);
-    const y = randBetween(1, ROOM_HEIGHT - 4);
-    room[y][x] = new Tile(tileTypes.BOMB, x, y);
-    return room;
-}
-
-function addRockToRoom(room) {
-    const x = randBetween(1, ROOM_WIDTH - 4);
-    const y = randBetween(1, ROOM_HEIGHT - 4);
-    room[y][x] = new Tile(tileTypes.ROCK, x, y);
-    return room;
-}
 
 function sideFromPos({ x, y }) {
     if (y === 0) return 'top';
@@ -154,19 +36,10 @@ function sideOpposite(side) {
     return { top: 'bottom', bottom: 'top', left: 'right', right: 'left' }[side];
 }
 
-function randBetween(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-// New helper for floats
-function randFloat(min, max) {
-    return Math.random() * (max - min) + min;
-}
-
 function getRoom(x, y, entryDoor) {
     const key = `${x},${y}`;
     if (!dungeon[key]) {
-        dungeon[key] = generateRoom(entryDoor);
+        dungeon[key] = roomGenerator.generateRoom(entryDoor, ROOM_HEIGHT, ROOM_WIDTH);
         dungeon[key].enemies = spawnEnemies();
     }
     return dungeon[key];
