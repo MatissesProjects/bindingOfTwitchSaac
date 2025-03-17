@@ -50,9 +50,11 @@ let roomMap = getRoom(currentRoom.x, currentRoom.y, "left");
 visitedRooms.add(`${currentRoom.x},${currentRoom.y}`);
 
 function movePlayer(dx, dy) {
+    // TODO this appears to only check the bottom right hand quadrent
+    //      we want to make sure possibly to add the other 3
     const newX = player.x + dx, newY = player.y + dy;
     const tileX = Math.floor(newX), tileY = Math.floor(newY);
-    const tile = roomMap[tileY]?.[tileX];
+    const tile = roomMap[tileY][tileX];
 
     switch(tile.type){
         case tileTypes.DOOR:
@@ -65,9 +67,7 @@ function movePlayer(dx, dy) {
             playerHit();
             break;
         case tileTypes.WALL:
-            break;
         case tileTypes.HOLE:
-            break;
         case tileTypes.ROCK:
             break;
         default:
@@ -221,7 +221,6 @@ function updateEnemies() {
     if (playerHitCooldown > 0) playerHitCooldown--;
 }
 
-// Simplified playerHit: removed duplicate and extra setInterval logic.
 function playerHit() {
     if (playerHitCooldown > 0) return;
     playerHitCooldown = player.playerCoolDown;
@@ -282,12 +281,12 @@ function render() {
     // Draw each tile by checking its type property.
     roomMap.forEach((row, y) => {
         row.forEach((tile, x) => {
-            ctx.fillStyle = tile.type === tileTypes.WALL ? '#444' : 
-                            tile.type === tileTypes.DOOR ? '#964B00' : 
-                            tile.type === tileTypes.BOMB ? '#A6BB00' : 
-                            tile.type === tileTypes.HOLE ? '#064BC0' : 
-                            tile.type === tileTypes.ROCK ? '#26AB40' : 
-                            tile.type === tileTypes.SPIKES ? '#36EB80' : 
+            ctx.fillStyle = tile.type === tileTypes.WALL ? '#444' : // grey
+                            tile.type === tileTypes.DOOR ? '#964B00' : // orange
+                            tile.type === tileTypes.BOMB ? '#A6BB00' : // yellow
+                            tile.type === tileTypes.HOLE ? '#064BC0' : // blue
+                            tile.type === tileTypes.ROCK ? '#26AB40' :   // dark green
+                            tile.type === tileTypes.SPIKES ? '#36EB80' : // light green
                             '#000';
             ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         });
