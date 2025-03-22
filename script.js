@@ -57,6 +57,9 @@ function movePlayer(dx, dy) {
         case tileTypes.ROCK:
             console.log("stuck on a " + tile.type);
             break;
+
+        // TODO we are going to want to know if we can walk though that object type
+        //      for instance bomb is a no, items is a yes
         default:
         // case tileTypes.EMPTY:
             player.x = newX; 
