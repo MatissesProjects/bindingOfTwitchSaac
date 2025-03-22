@@ -18,7 +18,7 @@ export function generateRoom(entryDoor, height, width) {
 
     // additional room on floor modifier
     room = addRandomItems(room, addSpikesToRoom, .5, 1, 5);
-    room = addRandomItems(room, addBombToRoom, .5, 1, 5);
+    // room = addRandomItems(room, addBombToRoom, .5, 1, 5);
     room = addRandomItems(room, addRockToRoom, .5, 1, 5);
     
     return room;

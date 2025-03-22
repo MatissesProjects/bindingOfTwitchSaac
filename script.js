@@ -25,17 +25,6 @@ let playerHitCooldown = player.playerCoolDown;
 let currentRoom = { x: 10, y: 10 };
 visitedRooms.add(`${currentRoom.x},${currentRoom.y}`);
 
-function sideFromPos({ x, y }) {
-    if (y === 0) return 'top';
-    if (y === ROOM_HEIGHT - 1) return 'bottom';
-    if (x === 0) return 'left';
-    if (x === ROOM_WIDTH - 1) return 'right';
-}
-
-function sideOpposite(side) {
-    return { top: 'bottom', bottom: 'top', left: 'right', right: 'left' }[side];
-}
-
 function getRoom(x, y, entryDoor) {
     const key = `${x},${y}`;
     if (!dungeon[key]) {
@@ -60,19 +49,21 @@ function movePlayer(dx, dy) {
         case tileTypes.DOOR:
             handleEnterDoor(tileX, tileY);
             break;
-        case tileTypes.BOMB:
-            explodeBomb(tileX, tileY);
-            break;
         case tileTypes.SPIKES:
             playerHit();
             break;
         case tileTypes.WALL:
         case tileTypes.HOLE:
         case tileTypes.ROCK:
+            console.log("stuck on a " + tile.type);
             break;
         default:
+        // case tileTypes.EMPTY:
             player.x = newX; 
             player.y = newY;
+        //     break;
+        // default:
+            console.log("what is this type? " + tile.type);
             break;
     }
 }
@@ -134,11 +125,12 @@ function explodeBomb(tileX, tileY) {
     let radius = 5;
 
     room.enemies.forEach(enemy => {
+        // TODO we want to use the bomb xy tile not the players
+        //      this way we can drop a bomb as the player
         const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y);
         console.log(dist);
         if (dist < radius) {
             enemyList.push(enemy);
-            
         }
     });
 
@@ -157,6 +149,17 @@ function update() {
         shootClosestEnemy();
         keys[' '] = false;
     }
+    if (keys['b']) dropBomb(player);
+}
+
+function dropBomb(player) {
+    console.log(`dropping bomb at player loc ${player.x} ${player.y}`);
+    
+    roomMap[Math.floor(player.y)][Math.floor(player.x)] = new Tile(tileTypes.BOMB, player.playerCenterX, player.playerCenterY);
+    const bombX = Math.floor(player.x), bombY = Math.floor(player.y);
+    setTimeout(function() {
+        explodeBomb(bombX, bombY);
+    }, 1000);
 }
 
 function drawMinimap() {

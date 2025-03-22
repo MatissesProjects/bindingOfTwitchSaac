@@ -4,6 +4,5 @@ export const tileTypes = {
     DOOR: { id: 2, name: "DOOR", walkable: true },
     HOLE: { id: 3, name: "HOLE", walkable: false },
     SPIKES: { id: 4, name: "SPIKES", walkable: true, damage: 1 },
-    BOMB: { id: 5, name: "BOMB", walkable: false, damage: 2 },
     ROCK: { id: 6, name: "ROCK", walkable: false },
 };
