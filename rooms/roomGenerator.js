@@ -89,7 +89,7 @@ function addHoleToRoom(room) {
 function addSpikesToRoom(room) {
     const x = randBetween(1, ROOM_WIDTH - 4);
     const y = randBetween(1, ROOM_HEIGHT - 4);
-    room[y][x] = new Tile(tileTypes.SPIKES, x, y);
+    room[y][x] = new Tile(tileTypes.SPIKE, x, y);
     return room;
 }
 

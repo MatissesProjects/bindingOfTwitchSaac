@@ -11,7 +11,7 @@ const TILE_SIZE = 40;
 const ROOM_WIDTH = canvas.width / TILE_SIZE;
 const ROOM_HEIGHT = canvas.height / TILE_SIZE;
 
-const player = new Player(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0.6, 0.1, 5, "default", 60, 5);
+const player = new Player(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0.6, 0.1, 5, 60, 5, 2);
 
 // Event Listeners
 let keys = {};
@@ -49,7 +49,7 @@ function movePlayer(dx, dy) {
         case tileTypes.DOOR:
             handleEnterDoor(tileX, tileY);
             break;
-        case tileTypes.SPIKES:
+        case tileTypes.SPIKE:
             playerHit();
             break;
         case tileTypes.WALL:
@@ -153,16 +153,29 @@ function update() {
         keys[' '] = false;
     }
     if (keys['b']) dropBomb(player);
+    if (keys['g']) addItemToInventory(player);
 }
 
 function dropBomb(player) {
+    console.log(`attempting to drop a bomb at player loc ${player.x} ${player.y}`);
+
+    // no bombs
+    if (player.numberBombs <= 0) return;
+
+    // if timebetween drop bomb is greater than drop bomb else return
+    // check timebetween
+
     console.log(`dropping bomb at player loc ${player.x} ${player.y}`);
-    
-    roomMap[Math.floor(player.y)][Math.floor(player.x)] = new Tile(tileTypes.BOMB, player.playerCenterX, player.playerCenterY);
+    player.numberBombs--;
     const bombX = Math.floor(player.x), bombY = Math.floor(player.y);
+    roomMap[bombY][bombX] = new Tile(tileTypes.BOMB, bombX, bombY);
     setTimeout(function() {
         explodeBomb(bombX, bombY);
     }, 1000);
+}
+
+function addItemToInventory(player) {
+    player.numberBombs++;
 }
 
 function drawMinimap() {
@@ -287,13 +300,13 @@ function render() {
     // Draw each tile by checking its type property.
     roomMap.forEach((row, y) => {
         row.forEach((tile, x) => {
-            ctx.fillStyle = tile.type === tileTypes.WALL ? '#444' : // grey
-                            tile.type === tileTypes.DOOR ? '#964B00' : // orange
-                            tile.type === tileTypes.BOMB ? '#A6BB00' : // yellow
-                            tile.type === tileTypes.HOLE ? '#064BC0' : // blue
-                            tile.type === tileTypes.ROCK ? '#26AB40' :   // dark green
-                            tile.type === tileTypes.SPIKES ? '#36EB80' : // light green
-                            '#000';
+            ctx.fillStyle = tile.type === tileTypes.WALL ?  '#444' :    // grey
+                            tile.type === tileTypes.DOOR ?  '#964B00' : // orange
+                            tile.type === tileTypes.BOMB ?  '#A6BB00' : // yellow
+                            tile.type === tileTypes.HOLE ?  '#064BC0' : // blue
+                            tile.type === tileTypes.ROCK ?  '#26AB40' : // dark green
+                            tile.type === tileTypes.SPIKE ? '#36EB80' : // light green
+                                                            '#000';
             ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         });
     });

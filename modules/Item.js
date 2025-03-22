@@ -1,4 +1,4 @@
-export default class Placeable {
+export default class Item {
     constructor(type, x, y, walkable, prop = {}) {
         this.type = type; // e.g., BOMB, ITEM, etc?
         this.x = x;
