@@ -12,7 +12,7 @@ const ROOM_WIDTH = canvas.width / TILE_SIZE;
 const ROOM_HEIGHT = canvas.height / TILE_SIZE;
 
 const player = new Player(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0.6, 0.1, 5, 60, 5, 2);
-
+const timeBetweenBombPlacements = 250; // ms
 // Event Listeners
 let keys = {};
 document.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
@@ -48,25 +48,28 @@ function movePlayer(dx, dy) {
     switch(tile.type){
         case tileTypes.DOOR:
             handleEnterDoor(tileX, tileY);
+            console.log("touching a " + tile.type.name);
             break;
         case tileTypes.SPIKE:
             playerHit();
+            console.log("touching a " + tile.type.name);
             break;
         case tileTypes.WALL:
         case tileTypes.HOLE:
         case tileTypes.ROCK:
-            console.log("stuck on a " + tile.type);
+            console.log("stuck on a " + tile.type.name);
             break;
-
         // TODO we are going to want to know if we can walk though that object type
         //      for instance bomb is a no, items is a yes
-        default:
-        // case tileTypes.EMPTY:
+        // default:
+        case tileTypes.EMPTY:
+        case tileTypes.BOMB:
             player.x = newX; 
             player.y = newY;
-        //     break;
-        // default:
-            console.log("what is this type? " + tile.type);
+            // console.log("what is this type? " + tileTypes.EMPTY.name);
+            break;
+        default:
+            console.log("what is this type? " + tile.type.name);
             break;
     }
 }
@@ -148,25 +151,33 @@ function update() {
     if (keys['s'] || keys['arrowdown']) movePlayer(0, player.speed);
     if (keys['a'] || keys['arrowleft']) movePlayer(-player.speed, 0);
     if (keys['d'] || keys['arrowright']) movePlayer(player.speed, 0);
-    if (keys[' ']) {
-        shootClosestEnemy();
-        keys[' '] = false;
-    }
+    if (keys[' ']) shootClosestEnemy();
     if (keys['b']) dropBomb(player);
     if (keys['g']) addItemToInventory(player);
 }
+let lastBombDropTime = 0;
 
 function dropBomb(player) {
     console.log(`attempting to drop a bomb at player loc ${player.x} ${player.y}`);
 
-    // no bombs
-    if (player.numberBombs <= 0) return;
-
+    const currentTime = Date.now();
     // if timebetween drop bomb is greater than drop bomb else return
     // check timebetween
+    // check if we can drop a bomb on this location, if hole/rock no else yes?
+
+    if (currentTime - lastBombDropTime < timeBetweenBombPlacements){
+        console.log("dropped bomb before this frame");
+        return;
+    }
+
+    // no bombs
+    if (player.inventory.numberBombs <= 0) return;
+    lastBombDropTime = currentTime;
 
     console.log(`dropping bomb at player loc ${player.x} ${player.y}`);
-    player.numberBombs--;
+    lastBombDropTime = currentTime;
+    // timeBetweenBombPlacements;
+    player.inventory.numberBombs--;
     const bombX = Math.floor(player.x), bombY = Math.floor(player.y);
     roomMap[bombY][bombX] = new Tile(tileTypes.BOMB, bombX, bombY);
     setTimeout(function() {
@@ -175,7 +186,7 @@ function dropBomb(player) {
 }
 
 function addItemToInventory(player) {
-    player.numberBombs++;
+    player.inventory.numberBombs++;
 }
 
 function drawMinimap() {
@@ -265,6 +276,8 @@ function shootClosestEnemy() {
     if (closestEnemy && minDist < player.shotDistance) { // range to shoot
         room.enemies = room.enemies.filter(e => e !== closestEnemy);
     }
+    
+    keys[' '] = false;
 }
 
 function gameOver() {
